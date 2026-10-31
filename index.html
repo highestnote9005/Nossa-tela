@@ -1,237 +1,218 @@
 <!doctype html>
 <html lang="pt-BR">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nossa Tela</title>
-<style>
-  :root { --bg:#14121a; --card:#1f1b29; --line:#322c42; --text:#f1eef8; --muted:#a79fbb; --accent:#ff6b8b; --accent2:#ff9a6b; --ok:#5fd39a; }
-  * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; min-height:100vh; }
-  main { max-width:760px; margin:0 auto; padding:24px 16px 48px; }
-  h1 { font-size:28px; margin:8px 0 4px; }
-  h1 span { background:linear-gradient(90deg,var(--accent),var(--accent2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
-  p.sub { color:var(--muted); margin:0 0 24px; }
-  .choose { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-  @media (max-width:520px){ .choose{grid-template-columns:1fr;} }
-  .big { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:20px; text-align:left; color:var(--text); cursor:pointer; font:inherit; }
-  .big:hover { border-color:var(--accent); }
-  .big b { display:block; font-size:18px; margin-bottom:6px; }
-  .big small { color:var(--muted); }
-  .panel { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px; margin-top:16px; }
-  .panel h2 { font-size:16px; margin:0 0 6px; }
-  .panel p { color:var(--muted); margin:0 0 12px; font-size:14px; }
-  textarea { width:100%; height:90px; background:#120f19; border:1px solid var(--line); border-radius:10px; color:var(--text); padding:10px; font-family:ui-monospace,Menlo,monospace; font-size:12px; resize:vertical; }
-  button.btn { background:linear-gradient(90deg,var(--accent),var(--accent2)); border:0; color:#1a1020; font-weight:700; padding:11px 18px; border-radius:10px; cursor:pointer; font-size:15px; margin-top:10px; margin-right:8px; }
-  button.btn.sec { background:transparent; border:1px solid var(--line); color:var(--text); font-weight:500; }
-  button.btn:disabled { opacity:.5; cursor:not-allowed; }
-  label.chk { display:flex; gap:8px; align-items:center; color:var(--muted); font-size:14px; margin-bottom:6px; }
-  .status { margin-top:16px; padding:10px 14px; border-radius:10px; background:#120f19; border:1px solid var(--line); font-size:14px; color:var(--muted); }
-  .status.ok { color:var(--ok); border-color:var(--ok); }
-  video { width:100%; background:#000; border-radius:14px; margin-top:16px; display:none; max-height:80vh; }
-  .hidden { display:none !important; }
-  .back { background:none; border:0; color:var(--muted); cursor:pointer; padding:0; margin-bottom:8px; font:inherit; }
-  .note { color:var(--muted); font-size:13px; margin-top:28px; line-height:1.5; }
-</style>
-</head>
-<body>
-<main>
-  <h1>💞 <span>Nossa Tela</span></h1>
-  <p class="sub">Compartilhe sua tela direto no navegador, de você para ela. Sem cadastro, sem servidor.</p>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#1b0912" />
+    <title>Nossa Tela</title>
+    <link rel="icon" type="image/svg+xml" sizes="any" href="favicon.svg" />
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Gloock&family=Hanken+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
 
-  <!-- Escolha -->
-  <section id="home">
-    <div class="choose">
-      <button class="big" id="pickShare"><b>🖥️ Vou compartilhar</b><small>Mostrar a minha tela (computador)</small></button>
-      <button class="big" id="pickWatch"><b>👀 Vou assistir</b><small>Ver a tela de quem está compartilhando</small></button>
+    <link rel="stylesheet" href="style.css" />
+
+    <!-- PeerJS: serviço que conecta os dois computadores. Precisa carregar antes do index.js -->
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  </head>
+
+  <body>
+    <div class="wrap">
+      <header class="top">
+        <button class="brand" id="brand" type="button" aria-label="Nossa Tela, voltar ao início">
+          <img src="logo.svg" alt="" />
+          <span>Nossa Tela</span>
+        </button>
+        <!-- Estado da conexão. O index.js troca o data-state (idle, wait, ok, live) e o texto -->
+        <div class="pill" id="pill" data-state="idle" role="status" aria-live="polite">
+          <i></i>
+          <span id="pillText">Pronto</span>
+        </div>
+      </header>
+
+      <main>
+        <section id="home">
+          <div class="hero-screen" id="heroScreen">
+            <svg class="heart" viewBox="186 128 140 116" aria-hidden="true">
+              <path
+                d="M256 238 C206 202 192 172 211 150 C228 132 252 140 256 160 C260 140 284 132 301 150 C320 172 306 202 256 238 Z"
+              />
+            </svg>
+            <h1>Dois sofás, uma só sessão.</h1>
+            <p>
+              Mostre o filme do seu computador. Ela entra com um código de 6 letras e assiste junto.
+            </p>
+          </div>
+          <div class="seats">
+            <button class="seat" id="pickShare" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="12" rx="2" />
+                <path d="M8 20h8M12 16v4" />
+              </svg>
+              <b>Transmitir minha tela</b>
+              <span>Escolha o filme e gere o código.</span>
+            </button>
+
+            <button class="seat" id="pickWatch" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M3 9a2 2 0 0 0 0 6v2a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-2a2 2 0 0 1 0-6V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1z"
+                />
+                <path d="M14 6v12" stroke-dasharray="2 2.4" />
+              </svg>
+              <b>Entrar com um código</b>
+              <span>Digite o código que você recebeu.</span>
+            </button>
+          </div>
+
+          <p class="foot">Sem cadastro, sem instalar nada.</p>
+        </section>
+        <section id="share" class="hidden">
+          <button class="back" type="button" data-back>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
+            Voltar
+          </button>
+          <div id="shareSetup" class="narrow">
+            <h2 class="title">Transmitir minha tela</h2>
+            <p class="lead">Escolha o que mostrar. Depois é só mandar o código para ela.</p>
+
+            <label class="switch">
+              <input type="checkbox" id="withAudio" checked />
+              <span class="track"><span class="thumb"></span></span>
+              <span>
+                <b>Enviar o som</b>
+                <small>
+                  Para o som chegar, escolha “Tela inteira” e marque “Compartilhar áudio do
+                  sistema” na janela do navegador.
+                </small>
+              </span>
+            </label>
+
+            <p class="tip">
+              Se vocês conversam por chamada durante o filme, usem fones para o som não virar eco.
+            </p>
+
+            <button class="btn primary" id="startShare" type="button">Escolher tela</button>
+          </div>
+          <div id="shareLive" class="hidden">
+            <div class="ticket-wrap">
+              <div class="ticket">
+                <div class="t-main">
+                  <h2>Sessão para dois</h2>
+                  <p>Mande este código para ela entrar.</p>
+                </div>
+                <div class="t-stub">
+                  <div class="code" id="roomCode">······</div>
+                  <small>Código da sessão</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="row-actions">
+              <button class="btn primary" id="copyInvite" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="9" y="9" width="11" height="11" rx="2" />
+                  <path d="M5 15V6a2 2 0 0 1 2-2h9" />
+                </svg>
+                Copiar convite
+              </button>
+              <button class="btn ghost" id="copyCode" type="button">Copiar código</button>
+              <button class="btn ghost hidden" id="copyLink" type="button">Copiar link</button>
+            </div>
+            <div class="statusline">
+              <i class="dot wait" id="viewerDot"></i>
+              <div>
+                <b id="vsTitle">Esperando ela entrar</b>
+                <small id="vsSub">Mantenha esta aba aberta durante o filme.</small>
+              </div>
+              <button class="btn ghost" id="stopShare" type="button">Encerrar transmissão</button>
+            </div>
+          </div>
+        </section>
+        <section id="watch" class="hidden">
+          <button class="back" type="button" data-back>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
+            Voltar
+          </button>
+          <div id="joinCard" class="narrow">
+            <h2 class="title">Digite o código da sessão</h2>
+            <p class="lead">São 6 letras e números. Peça para quem está transmitindo.</p>
+
+            <!-- Seis caixinhas (uma por caractere). O index.js cuida de avançar e apagar. -->
+            <div class="otp" id="otp" role="group" aria-label="Código da sessão">
+              <input autocapitalize="characters" autocomplete="off" spellcheck="false" aria-label="Caractere 1" />
+              <input autocapitalize="characters" autocomplete="off" spellcheck="false" aria-label="Caractere 2" />
+              <input autocapitalize="characters" autocomplete="off" spellcheck="false" aria-label="Caractere 3" />
+              <input autocapitalize="characters" autocomplete="off" spellcheck="false" aria-label="Caractere 4" />
+              <input autocapitalize="characters" autocomplete="off" spellcheck="false" aria-label="Caractere 5" />
+              <input autocapitalize="characters" autocomplete="off" spellcheck="false" aria-label="Caractere 6" />
+            </div>
+
+            <p class="err" id="joinErr" role="alert"></p>
+
+            <button class="btn primary" id="joinBtn" type="button" disabled>Entrar na sessão</button>
+          </div>
+          <div id="stage" class="hidden">
+            <div class="screen" id="screen">
+              <video id="remote" autoplay playsinline></video>
+              <div class="waiting" id="waiting">
+                <div class="spinner"></div>
+                <b>Conectado</b>
+                <small>A tela aparece em instantes.</small>
+              </div>
+
+              <!-- Aparece só se o navegador bloquear o início automático -->
+              <div class="tapplay hidden" id="tapPlay">
+                <button class="btn primary" id="playBtn" type="button">Assistir agora</button>
+              </div>
+              <div class="controls" id="controls">
+                <button class="ctl" id="muteBtn" type="button" aria-label="Ligar ou desligar o som">
+                  <svg id="icVol" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 10v4h4l5 4V6L8 10z" />
+                    <path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11" />
+                  </svg>
+                  <svg id="icMute" class="hidden" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 10v4h4l5 4V6L8 10z" />
+                    <path d="M17 9l4 6M21 9l-4 6" />
+                  </svg>
+                </button>
+
+                <input class="vol" id="vol" type="range" min="0" max="1" step="0.05" value="1" aria-label="Volume" />
+
+                <span class="spacer"></span>
+
+                <!-- Janela flutuante: o index.js só mostra se o navegador suportar -->
+                <button class="ctl hidden" id="pipBtn" type="button" aria-label="Imagem sobre imagem">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="3" y="5" width="18" height="14" rx="2" />
+                    <rect x="12" y="12" width="7" height="5" rx="1" fill="currentColor" />
+                  </svg>
+                </button>
+
+                <button class="ctl" id="fsBtn" type="button" aria-label="Tela cheia">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="stage-foot">
+              <button class="btn ghost" id="leaveBtn" type="button">Sair da sessão</button>
+            </div>
+          </div>
+        </section>
+      </main>
     </div>
-    <p class="note">Como funciona: quem compartilha gera um código e manda por WhatsApp. Quem assiste cola, gera um código de resposta e devolve. Cola de volta e pronto: a conexão é direta entre vocês dois.</p>
-  </section>
 
-  <!-- Quem compartilha -->
-  <section id="share" class="hidden">
-    <button class="back" data-back>← voltar</button>
-    <div class="panel">
-      <h2>1. Escolha o que compartilhar</h2>
-      <label class="chk"><input type="checkbox" id="withAudio" checked> Compartilhar também o áudio do filme</label>
-      <p>Dica: para o som sair, escolha <b>Tela inteira</b> (ou uma aba) e marque <b>"Compartilhar áudio do sistema"</b> na janelinha do navegador. Se compartilhar só uma janela, o som não é enviado.</p>
-      <button class="btn" id="startShare">Selecionar tela e gerar código</button>
-    </div>
-    <div class="panel hidden" id="offerPanel">
-      <h2>2. Envie este código para ela</h2>
-      <p>Copie e mande por WhatsApp.</p>
-      <textarea id="offerOut" readonly></textarea>
-      <button class="btn" id="copyOffer">Copiar código</button>
-    </div>
-    <div class="panel hidden" id="answerPanel">
-      <h2>3. Cole aqui o código de resposta dela</h2>
-      <textarea id="answerIn" placeholder="Cole o código que ela devolveu"></textarea>
-      <button class="btn" id="connect">Conectar</button>
-      <button class="btn sec" id="stopShare">Parar compartilhamento</button>
-    </div>
-  </section>
+    <!-- Aviso rápido (o index.js preenche o texto) -->
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <!-- Quem assiste -->
-  <section id="watch" class="hidden">
-    <button class="back" data-back>← voltar</button>
-    <div class="panel">
-      <h2>1. Cole o código que você recebeu</h2>
-      <textarea id="offerIn" placeholder="Cole aqui o código de quem vai compartilhar"></textarea>
-      <button class="btn" id="makeAnswer">Gerar código de resposta</button>
-    </div>
-    <div class="panel hidden" id="answerOutPanel">
-      <h2>2. Devolva este código</h2>
-      <p>Copie e mande de volta. Assim que ele conectar, a tela aparece abaixo.</p>
-      <textarea id="answerOut" readonly></textarea>
-      <button class="btn" id="copyAnswer">Copiar resposta</button>
-    </div>
-    <video id="remote" autoplay playsinline controls></video>
-    <button class="btn sec hidden" id="fs">Tela cheia</button>
-  </section>
-
-  <div class="status" id="status">Escolha uma opção para começar.</div>
-</main>
-
-<script>
-const $ = id => document.getElementById(id);
-const RTC_CONFIG = { iceServers: [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }] };
-let pc = null, localStream = null;
-
-function setStatus(t, ok=false){ const s=$('status'); s.textContent=t; s.classList.toggle('ok', ok); }
-function show(id){ ['home','share','watch'].forEach(x=>$(x).classList.toggle('hidden', x!==id)); }
-
-/* ---------- codificação compacta do SDP ---------- */
-function toB64Url(buf){
-  let s=''; new Uint8Array(buf).forEach(b=>s+=String.fromCharCode(b));
-  return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-}
-function fromB64Url(str){
-  str = str.trim().replace(/\s+/g,'').replace(/-/g,'+').replace(/_/g,'/');
-  while(str.length%4) str+='=';
-  const bin=atob(str); const u=new Uint8Array(bin.length);
-  for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i);
-  return u;
-}
-async function encodeDesc(d){
-  const json=JSON.stringify({type:d.type, sdp:d.sdp});
-  const stream=new Blob([json]).stream().pipeThrough(new CompressionStream('gzip'));
-  return toB64Url(await new Response(stream).arrayBuffer());
-}
-async function decodeDesc(code){
-  const stream=new Blob([fromB64Url(code)]).stream().pipeThrough(new DecompressionStream('gzip'));
-  return JSON.parse(await new Response(stream).text());
-}
-function waitIce(pc){
-  return new Promise(res=>{
-    if(pc.iceGatheringState==='complete') return res();
-    const check=()=>{ if(pc.iceGatheringState==='complete'){ pc.removeEventListener('icegatheringstatechange',check); res(); } };
-    pc.addEventListener('icegatheringstatechange',check);
-    setTimeout(res,5000);
-  });
-}
-function watchState(pc){
-  pc.onconnectionstatechange=()=>{
-    const s=pc.connectionState;
-    if(s==='connected') setStatus('Conectado! 🎉', true);
-    else if(s==='connecting') setStatus('Conectando...');
-    else if(s==='disconnected') setStatus('Conexão instável ou encerrada.');
-    else if(s==='failed') setStatus('Não foi possível conectar. Tentem de novo (algumas redes bloqueiam conexão direta).');
-    else if(s==='closed') setStatus('Conexão encerrada.');
-  };
-}
-async function copy(textareaId, btn){
-  const ta=$(textareaId);
-  try{ await navigator.clipboard.writeText(ta.value); }catch{ ta.select(); document.execCommand('copy'); }
-  const old=btn.textContent; btn.textContent='Copiado ✓'; setTimeout(()=>btn.textContent=old,1500);
-}
-function reset(){
-  if(pc){ pc.close(); pc=null; }
-  if(localStream){ localStream.getTracks().forEach(t=>t.stop()); localStream=null; }
-  ['offerPanel','answerPanel','answerOutPanel','fs'].forEach(i=>$(i).classList.add('hidden'));
-  $('remote').style.display='none'; $('remote').srcObject=null;
-  ['offerOut','answerIn','offerIn','answerOut'].forEach(i=>$(i).value='');
-  $('startShare').disabled=false; $('makeAnswer').disabled=false;
-}
-
-$('pickShare').onclick=()=>{ show('share'); setStatus('Você vai compartilhar. Siga os passos.'); };
-$('pickWatch').onclick=()=>{ show('watch'); setStatus('Você vai assistir. Cole o código que recebeu.'); };
-document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{ reset(); show('home'); setStatus('Escolha uma opção para começar.'); });
-
-/* ---------- Quem compartilha ---------- */
-$('startShare').onclick=async()=>{
-  if(!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia){
-    return setStatus('Seu navegador não permite compartilhar a tela. Use Chrome, Edge ou Firefox no computador.');
-  }
-  try{
-    localStream=await navigator.mediaDevices.getDisplayMedia({
-      video:{ frameRate:{ ideal:30, max:60 }, width:{ ideal:1920 }, height:{ ideal:1080 } },
-      audio:$('withAudio').checked ? { echoCancellation:false, noiseSuppression:false, autoGainControl:false } : false,
-      systemAudio:'include'
-    });
-  }catch(e){ return setStatus('Compartilhamento cancelado.'); }
-  $('startShare').disabled=true;
-  setStatus('Gerando código...');
-  pc=new RTCPeerConnection(RTC_CONFIG);
-  watchState(pc);
-  for(const t of localStream.getTracks()){
-    t.contentHint = t.kind==='video' ? 'motion' : 'music';
-    const sender = pc.addTrack(t, localStream);
-    if(t.kind==='video'){
-      try{
-        const p = sender.getParameters();
-        if(!p.encodings || !p.encodings.length) p.encodings=[{}];
-        p.encodings[0].maxBitrate = 8000000;
-        p.degradationPreference = 'maintain-resolution';
-        await sender.setParameters(p);
-      }catch(e){}
-    }
-  }
-  if(!localStream.getAudioTracks().length && $('withAudio').checked){
-    setStatus('Atenção: o áudio não foi capturado. Compartilhe a Tela inteira e marque "Compartilhar áudio do sistema".');
-  }
-  localStream.getVideoTracks()[0].onended=()=>{ setStatus('Você parou de compartilhar.'); reset(); show('home'); };
-  await pc.setLocalDescription(await pc.createOffer());
-  await waitIce(pc);
-  $('offerOut').value=await encodeDesc(pc.localDescription);
-  $('offerPanel').classList.remove('hidden');
-  $('answerPanel').classList.remove('hidden');
-  const noAudio = $('withAudio').checked && !localStream.getAudioTracks().length;
-  setStatus('Código gerado. Mande para ela e aguarde a resposta.' + (noAudio ? ' ⚠️ O áudio NÃO foi capturado: compartilhe a Tela inteira e marque "Compartilhar áudio do sistema".' : ''));
-};
-$('copyOffer').onclick=e=>copy('offerOut', e.target);
-$('connect').onclick=async()=>{
-  try{
-    const desc=await decodeDesc($('answerIn').value);
-    await pc.setRemoteDescription(desc);
-    setStatus('Conectando...');
-  }catch(e){ setStatus('Código de resposta inválido. Confira se colou inteiro.'); }
-};
-$('stopShare').onclick=()=>{ reset(); show('home'); setStatus('Compartilhamento encerrado.'); };
-
-/* ---------- Quem assiste ---------- */
-$('makeAnswer').onclick=async()=>{
-  let offer;
-  try{ offer=await decodeDesc($('offerIn').value); }
-  catch(e){ return setStatus('Código inválido. Confira se colou inteiro.'); }
-  $('makeAnswer').disabled=true;
-  setStatus('Gerando resposta...');
-  pc=new RTCPeerConnection(RTC_CONFIG);
-  watchState(pc);
-  pc.ontrack=e=>{
-    const v=$('remote');
-    v.srcObject=e.streams[0]; v.style.display='block';
-    $('fs').classList.remove('hidden');
-    v.play().catch(()=>{});
-  };
-  await pc.setRemoteDescription(offer);
-  await pc.setLocalDescription(await pc.createAnswer());
-  await waitIce(pc);
-  $('answerOut').value=await encodeDesc(pc.localDescription);
-  $('answerOutPanel').classList.remove('hidden');
-  setStatus('Resposta pronta. Copie e devolva.');
-};
-$('copyAnswer').onclick=e=>copy('answerOut', e.target);
-$('fs').onclick=()=>{ const v=$('remote'); (v.requestFullscreen||v.webkitRequestFullscreen).call(v); };
-</script>
-</body>
+    <script src="index.js"></script>
+  </body>
 </html>
